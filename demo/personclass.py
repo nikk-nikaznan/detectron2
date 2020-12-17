@@ -9,7 +9,7 @@ from detectron2.utils.visualizer import Visualizer
 
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
-vid_path = "/home/nikkhadijah/Data/Track/VideoFiles/GNE_663_110520_0714_0739_Cam03.mp4"
+vid_path = "/home/nikkhadijah/Data/Track/VideoFiles/video.mp4"
 video = cv2.VideoCapture(vid_path)
 width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
