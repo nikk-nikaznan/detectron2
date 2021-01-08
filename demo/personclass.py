@@ -9,7 +9,8 @@ from detectron2.utils.visualizer import Visualizer
 
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
-vid_path = "/home/nikkhadijah/Data/Track/VideoFiles/video.mp4"
+filename = "TFL-DK38-Vic-616C-D040-----02-07h38m30s-19.06.2020.avi"
+vid_path = "/home/nikkhadijah/Data/Vic-On-Train-CCTV/"+filename
 video = cv2.VideoCapture(vid_path)
 width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -26,53 +27,61 @@ cfg = get_cfg()
 cfg.merge_from_file(model_zoo.get_config_file("COCO-PanopticSegmentation/panoptic_fpn_R_101_3x.yaml"))
 cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-PanopticSegmentation/panoptic_fpn_R_101_3x.yaml")
 
-
-
 predictor = DefaultPredictor(cfg)
+
+results = []
+frame_id = 0
 
 while(video.isOpened()):
     ret, frame = video.read()
 
-    # outputs = predictor(frame)
-    # print(outputs["instances"].pred_classes)
-    # print(len(outputs["instances"].pred_classes))
+    if ret is True:
 
-    panoptic = predictor(frame)
-    # panoptic_seg, segments_info = predictor(frame)["panoptic_seg"]
-    
-    # print (segments_info[].pred_class)
-    print(panoptic["instances"].pred_classes)
-    print(len(panoptic["instances"].pred_classes))
+        print (frame_id)
 
+        panoptic = predictor(frame)
+        panoptic_seg, segments_info = predictor(frame)["panoptic_seg"]
 
-    v = Visualizer(frame[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
+        v = Visualizer(frame[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=2)
 
-    instances = panoptic["instances"]
-    category_detections = instances[instances.pred_classes == 0]
-    confident_detections = category_detections[category_detections.scores > 0.5]
-    
-    out = v.draw_instance_predictions(confident_detections.to("cpu"))
-    cv2.imshow('frame', out.get_image()[:, :, ::-1])
+        instances = panoptic["instances"]
+        category_detections = instances[instances.pred_classes == 0]
+        confident_detections = category_detections[category_detections.scores > 0.5]
 
+        # print (confident_detections.pred_classes)
+        print (len(confident_detections.pred_classes))
+        print (confident_detections.pred_boxes)
+        output_pred_boxes = confident_detections.pred_boxes
+        for i in output_pred_boxes.__iter__():
+            bbox = i.cpu().numpy()
+            print(bbox)
+        
+        # instances.gt_boxes = confident_detections.pred_boxes[0]
+        # box1 = confident_detections.pred_boxes[0]
+        # print (box1.shape)
+        # print (len(box1[1]))
+        # print (confident_detections.scores)
+        
+        out = v.draw_instance_predictions(confident_detections.to("cpu"))
+        cv2.imshow('frame', out.get_image()[:, :, ::-1])
 
-    # # print ('coco_2017_val')
-    # visualizer = Visualizer(frame[:, :, ::-1], MetadataCatalog.get('coco_2017_val'), scale=1)
-    
-    # instances = outputs["instances"]
-    # # category_detections = instances[instances.pred_classes == 1]
-    # # confident_detections = instances[instances.scores > 0.5]
-    
-    # img_output = visualizer.draw_instance_predictions(instances.to("cpu"))
+        # confident_detections.to("cpu")
+        # print (confident_detections.pred_boxes.to("cpu"))
+        # print (confident_detections.pred_boxes.numpy())
 
-    # cv2.imshow('frame', img_output.get_image()[:, :, ::-1])
+        # kitti format
+        # for n_target in len(confident_detections.pred_classes)
+        #     target_id = n_target + 1
+        #     if confident_detections.pred_classes 
+            # results.append((frame_id, online_tlwhs, online_ids))
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-    # Display the resulting frame
-    # cv2.imshow('frame',frame)
-    # if cv2.waitKey(1) & 0xFF == ord('q'):
-    #     break
+        frame_id = frame_id + 1
 
-# When everything done, release the capture
-cap.release()
-cv2.destroyAllWindows()
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    else :
+        
+
+        video.release()
+        cv2.destroyAllWindows()
